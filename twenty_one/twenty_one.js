@@ -1,6 +1,6 @@
 const readline = require('readline-sync');
 const MESSAGES = require('./messages.json');
-const MAX_WIN_COUNT = 2;
+const MAX_WIN_COUNT = 5;
 const MAX_HAND_VALUE = 21;
 const DEALER_HIT_LIMIT = 17;
 const CARD_SUITS = ['H', 'C', 'S', 'D'];
