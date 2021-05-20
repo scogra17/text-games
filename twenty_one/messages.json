@@ -1,0 +1,11 @@
+{
+  "hit_message": "Hit or stay ('h' or 's')?",
+  "hit_error": "Please provide a valid response ('h', 's').",
+  "new_game_message": "Play again? ('y' or 'n').",
+  "yes_no_error": "Please provid a valid response ('y' or 'n').",
+  "player_busted_message": "You busted!",
+  "game_winner_message": " won the game!",
+  "match_winner_message": " won the match!",
+  "new_match_message": "New match? ('y' or 'n')",
+  "hand_totals_message": "Hand total"
+}
