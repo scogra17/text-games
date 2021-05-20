@@ -1,5 +1,5 @@
 # About 
 Simple text-based games
 
-# Progress 
+# So far... 
 * 05/19/21: Tenty-one (aka blackjack) (procedural)
