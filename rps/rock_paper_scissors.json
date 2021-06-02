@@ -1,0 +1,24 @@
+{
+  "gameRules": {
+    "rock": {
+      "defeats": ["scissors", "lizard"],
+      "shortName": "r"
+    },
+    "scissors": {
+      "defeats": ["paper", "lizard"],
+      "shortName": "sc"
+    },
+    "paper": {
+      "defeats": ["rock", "spock"],
+      "shortName": "p"
+    },
+    "spock": {
+      "defeats": ["scissors", "rock"],
+      "shortName": "sp"
+    }, 
+    "lizard": {
+      "defeats": ["paper", "spock"],
+      "shortName": "l"
+    }
+  }
+}
