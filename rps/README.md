@@ -3,12 +3,24 @@ Rock, paper, scissors + [lizard/spock](http://www.samkass.com/theories/RPSSL.htm
 
 # Text "UI"
 ```
-Welcome to rock, scissors, paper, spock, lizard!
-The first player to reach 2 wins the match.
-Please choose rock, scissors, paper, spock, lizard:
-rock
-You chose: rock
-The computer chose: lizard
+Your move (rock):
+    _______
+---'   ____)
+      (_____)
+      (_____)
+      (____)
+---.__(___)
+
+
+Computer move (scissors):
+    _______
+---'   ____)____
+          ______)
+       __________)
+      (____)
+---.__(___)
+
+
 You win!
 Player wins: 1
 Computer wins: 0
