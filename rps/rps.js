@@ -1,6 +1,7 @@
 const readline = require('readline-sync');
 const CONFIG = require('./rock_paper_scissors.json');
-const GAME_RULES = CONFIG.gameRules;
+const GAME_RULES = CONFIG.game_rules;
+const GAME_BOARD_ASSETS = CONFIG.game_board_assets;
 const VALID_MOVE_CHOICES = Object.keys(GAME_RULES);
 const GAMES_NEEDED_TO_WIN_MATCH = 2;
 
@@ -10,6 +11,10 @@ function createPlayer() {
     move: null,
     score: 0,
     moves: {},
+
+    getMove() {return this.move},
+
+    setMove(value) {this.move = value},
 
     winGame() {this.score += 1},
 
@@ -35,9 +40,27 @@ function createComputer() {
   let playerObject = createPlayer();
 
   let computerObject = {
-    choose() {
-      let randomIndex = Math.floor(Math.random() * VALID_MOVE_CHOICES.length);
-      this.move = VALID_MOVE_CHOICES[randomIndex];
+    // calculateWeightedMoves determines that moves that the computer should 
+    // favor
+    // input: object with count of moves made by player, e.g. {rock: 2, spock: 1}
+    // output: array with weighted moves  
+    calculateWeightedMoves(playerMoves) {
+      let weightedMoves = VALID_MOVE_CHOICES.slice();
+      for (let move in playerMoves) {
+        let moveCount = playerMoves[move];
+        let moveDefeatedBy = GAME_RULES[move].defeated_by;
+        for (let i = 0; i < moveCount; i += 1) {
+          weightedMoves = weightedMoves.concat(moveDefeatedBy);
+        }
+      }
+      return weightedMoves;
+    },
+
+    choose(playerMoves) {
+      let weightedMoveChoices = this.calculateWeightedMoves(playerMoves);
+      console.log(weightedMoveChoices);
+      let randomIndex = Math.floor(Math.random() * weightedMoveChoices.length);
+      this.move = weightedMoveChoices[randomIndex];
     }
   };
 
@@ -64,25 +87,41 @@ function createHuman() {
   return Object.assign(playerObject, humanObject);
 }
 
-// function createMove() {
-//   return {
-//     // possible state: type of move (paper, rock scissors)
-//   };
-// }
+function createGameBoard(human, computer) {
+  return {
+    human: human,
+    computer: computer,
 
-// function createRule() {
-//   return {
-//     // possilbe state? no clear whether Rules need state
-//   }
-// }
+    setHuman(value) {
+      this.human = value;
+    },
 
-// let compare = function(move1, move2) {
+    setComputer(value) {
+      this.computer = value;
+    },
 
-// };
+    displayMoves() {
+      let humanMoveDisplay = GAME_BOARD_ASSETS[this.human.getMove()];
+      let computerMoveDisplay = GAME_BOARD_ASSETS[this.computer.getMove()];
+      console.log(`Your move (${this.human.getMove()}):\n${humanMoveDisplay}\nComputer move (${this.computer.getMove()}):\n${computerMoveDisplay}`);
+    },
+
+    display() {
+      console.clear();
+      this.displayMoves();
+    }
+  }
+}
 
 const RPSGame = {
   human: createHuman(),
   computer: createComputer(),
+  gameBoard: createGameBoard(),
+
+  resetGameBoard(human, computer) {
+    this.gameBoard.setHuman(human);
+    this.gameBoard.setComputer(computer);
+  },
 
   displayWelcomeMessage() {
     console.log(`Welcome to ${VALID_MOVE_CHOICES.join(', ')}!`);
@@ -101,9 +140,6 @@ const RPSGame = {
   displayWinner() {
     let humanMove = this.human.move;
     let computerMove = this.computer.move;
-
-    console.log(`You chose: ${this.human.move}`);
-    console.log(`The computer chose: ${this.computer.move}`);
 
     this.updatePlayerMoves();
 
@@ -155,8 +191,8 @@ const RPSGame = {
   },
 
   displayMoves() {
-    console.log(this.human.getMoves());
-    console.log(this.computer.getMoves());
+    // console.log(this.human.getMoves());
+    // console.log(this.computer.getMoves());
   },
 
   play() {
@@ -164,10 +200,12 @@ const RPSGame = {
     // Match loop
     while (true) {
       this.resetMatch();
+      this.resetGameBoard(this.human, this.computer);
       // Individual game loop
       while (true) {
         this.human.choose();
-        this.computer.choose();
+        this.computer.choose(this.human.getMoves());
+        this.gameBoard.display();
         this.displayWinner();
         this.displayMatchSummary();
         if (this.isMatchOver()) break;

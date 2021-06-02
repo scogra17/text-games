@@ -1,24 +1,31 @@
 {
-  "gameRules": {
+  "game_rules": {
     "rock": {
       "defeats": ["scissors", "lizard"],
-      "shortName": "r"
+      "defeated_by": ["spock", "paper"]
     },
     "scissors": {
       "defeats": ["paper", "lizard"],
-      "shortName": "sc"
+      "defeated_by": ["spock", "rock"]
     },
     "paper": {
       "defeats": ["rock", "spock"],
-      "shortName": "p"
+      "defeated_by": ["scissors", "lizard"]
     },
     "spock": {
       "defeats": ["scissors", "rock"],
-      "shortName": "sp"
+      "defeated_by": ["paper", "lizard"]
     }, 
     "lizard": {
       "defeats": ["paper", "spock"],
-      "shortName": "l"
+      "defeated_by": ["scissors", "rock"]
     }
+  },
+  "game_board_assets": {
+    "rock": "    _______\n---'   ____)\n      (_____)\n      (_____)\n      (____)\n---.__(___)\n\n",
+    "scissors": "    _______\n---'   ____)____\n          ______)\n       __________)\n      (____)\n---.__(___)\n\n",
+    "paper": "    _______\n---'    ____)____\n           ______)\n          _______)\n         _______)\n---.__________)\n\n",
+    "spock": "     _______\n---'    ____)____\n           ______)\n          _______)\n         <______\n         _______)\n---.__________)\n",
+    "lizard": "    _________\n---' _______ \\\n    /____/ /\\/\n---.______/          \n\n\n"
   }
 }
