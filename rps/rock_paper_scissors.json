@@ -1,31 +1,28 @@
 {
-  "game_rules": {
-    "rock": {
-      "defeats": ["scissors", "lizard"],
-      "defeated_by": ["spock", "paper"]
-    },
-    "scissors": {
-      "defeats": ["paper", "lizard"],
-      "defeated_by": ["spock", "rock"]
-    },
-    "paper": {
-      "defeats": ["rock", "spock"],
-      "defeated_by": ["scissors", "lizard"]
-    },
-    "spock": {
-      "defeats": ["scissors", "rock"],
-      "defeated_by": ["paper", "lizard"]
-    }, 
-    "lizard": {
-      "defeats": ["paper", "spock"],
-      "defeated_by": ["scissors", "rock"]
-    }
+  "valid_moves": {
+    "rps": ["rock", "paper", "scissors"],
+    "rpsls": ["rock", "paper", "scissors", "lizard", "spock"]
   },
-  "game_board_assets": {
-    "rock": "    _______\n---'   ____)\n      (_____)\n      (_____)\n      (____)\n---.__(___)\n\n",
-    "scissors": "    _______\n---'   ____)____\n          ______)\n       __________)\n      (____)\n---.__(___)\n\n",
-    "paper": "    _______\n---'    ____)____\n           ______)\n          _______)\n         _______)\n---.__________)\n\n",
-    "spock": "     _______\n---'    ____)____\n           ______)\n          _______)\n         <______\n         _______)\n---.__________)\n",
-    "lizard": "    _________\n---' _______ \\\n    /____/ /\\/\n---.______/          \n\n\n"
+  "game_rules": {
+      "rock": {
+        "defeats": ["scissors", "lizard"],
+        "defeated_by": ["spock", "paper"]
+      },
+      "scissors": {
+        "defeats": ["paper", "lizard"],
+        "defeated_by": ["spock", "rock"]
+      },
+      "paper": {
+        "defeats": ["rock", "spock"],
+        "defeated_by": ["scissors", "lizard"]
+      },
+      "spock": {
+        "defeats": ["scissors", "rock"],
+        "defeated_by": ["paper", "lizard"]
+      }, 
+      "lizard": {
+        "defeats": ["paper", "spock"],
+        "defeated_by": ["scissors", "rock"]
+      }
   }
 }
