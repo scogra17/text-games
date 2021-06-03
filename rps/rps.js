@@ -1,5 +1,5 @@
 /* eslint-disable max-lines-per-function */
-
+const open = require('open');
 const readline = require('readline-sync');
 const CONFIG = require('./rock_paper_scissors.json');
 const GAME_RULES = CONFIG.game_rules;
@@ -7,6 +7,7 @@ const VALID_MOVES = CONFIG.valid_moves;
 const UTILITIES = require('./utilities');
 const DISPLAY_ASSETS = require('./display_assets');
 const GAMES_NEEDED_TO_WIN_MATCH = 2;
+const RPSSL_RULES_URL = 'http://www.samkass.com/theories/RPSSL.html';
 
 
 function createPlayer() {
@@ -124,6 +125,7 @@ function createGameBoard(human, computer) {
       );
       console.log(DISPLAY_ASSETS.welcomeRPS + combinedDisplay);
       console.log(`Win the match by being the first to win ${GAMES_NEEDED_TO_WIN_MATCH} games.`);
+      readline.question('Click any key to continue:');
     },
 
     displayGoodbyeMessage() {
@@ -138,6 +140,19 @@ function createGameBoard(human, computer) {
       console.log(DISPLAY_ASSETS.optionLS + combinedDisplay);
     },
 
+    displayMatchSummary() {
+      console.log(`Your win count: ${this.human.getScore()}`);
+      console.log(`Computer win count: ${this.computer.getScore()}`);
+    },
+
+    displayMatchWinner() {
+      if (this.human.isMatchWinner()) {
+        console.log(DISPLAY_ASSETS.youWinMatch);
+      } else if (this.computer.isMatchWinner()) {
+        console.log(DISPLAY_ASSETS.computerWinsMatch);
+      }
+    },
+
     displayGameWinner() {
       if (this.human.getIsGameWinner()) {
         console.log(DISPLAY_ASSETS.youWin);
@@ -146,120 +161,127 @@ function createGameBoard(human, computer) {
       } else {
         console.log(DISPLAY_ASSETS.tie);
       }
+    },
+
+    displayInGameSummary() {
+      this.displayMoves();
+      this.displayGameWinner();
+      this.displayMatchSummary();
     }
   };
 }
 
-const RPSGame = {
-  human: createHuman(),
-  computer: createComputer(),
-  gameBoard: createGameBoard(),
-  validMoves: null,
+function createYesOrNoQuestion() {
+  return {
+    validYesOrNoResponses: ['y', 'n'],
 
-  getValidMoves() {return this.validMoves},
-  setValidMoves(value) {this.validMoves = value},
+    isValidResponse(response) {
+      return !this.validResponses.includes(response);
+    },
 
-  resetGameBoard() {
-    this.gameBoard.setHuman(this.human);
-    this.gameBoard.setComputer(this.computer);
-  },
-
-  updatePlayerMoves() {
-    this.human.updateMoves(this.human.move);
-    this.computer.updateMoves(this.computer.move);
-  },
-
-  determineWinner() {
-    let humanMove = this.human.move;
-    let computerMove = this.computer.move;
-
-    this.updatePlayerMoves();
-
-    if (GAME_RULES[humanMove].defeats.includes(computerMove)) {
-      this.human.winGame();
-    } else if (GAME_RULES[computerMove].defeats.includes(humanMove)) {
-      this.computer.winGame();
-    }
-  },
-
-  playAgain() {
-    UTILITIES.prompt('Next game? (y/n)');
-    let answer = readline.question();
-    return answer.toLowerCase()[0] === 'y';
-  },
-
-  newMatch() {
-    UTILITIES.prompt('New match? (y/n)');
-    let answer = readline.question();
-    return answer.toLowerCase()[0] === 'y';
-  },
-
-  displayMatchSummary() {
-    console.log(`Your win count: ${this.human.getScore()}`);
-    console.log(`Computer win count: ${this.computer.getScore()}`);
-  },
-
-  isMatchOver() {
-    return this.human.isMatchWinner() || this.computer.isMatchWinner();
-  },
-
-  displayMatchWinner() {
-    if (this.human.isMatchWinner()) {
-      console.log(DISPLAY_ASSETS.youWinMatch);
-    } else if (this.computer.isMatchWinner()) {
-      console.log(DISPLAY_ASSETS.computerWinsMatch);
-    }
-  },
-
-  selectGameType() {
-    this.gameBoard.displayGameTypes();
-    UTILITIES.prompt('Would you like to include additional moves? (y/n)');
-    let answer = readline.question();
-    if (answer.toLowerCase()[0] === 'y') {
-      this.setValidMoves(VALID_MOVES.rpsls);
-    } else {
-      this.setValidMoves(VALID_MOVES.rps);
-    }
-  },
-
-  resetMatch() {
-    this.human.resetScore();
-    this.computer.resetScore();
-    this.selectGameType();
-  },
-
-  resetGame() {
-    this.human.setIsGameWinner(false);
-    this.computer.setIsGameWinner(false);
-  },
-
-  continueGame() {
-    readline.question('Click any key to continue:');
-  },
-
-  play() {
-    this.gameBoard.displayWelcomeMessage();
-    this.continueGame();
-    while (true) {
-      this.resetMatch();
-      this.resetGameBoard();
-      // Individual game loop
-      while (true) {
-        this.resetGame();
-        this.human.choose(null, this.getValidMoves());
-        this.computer.choose(this.human.getMoves(), this.getValidMoves());
-        this.gameBoard.displayMoves();
-        this.determineWinner();
-        this.gameBoard.displayGameWinner();
-        this.displayMatchSummary();
-        if (this.isMatchOver()) break;
-        if (!this.playAgain()) break;
+    askYesOrNoQuestion(question) {
+      UTILITIES.prompt(question + ' (y/n)');
+      let answer = readline.question().toLowerCase();
+      while (UTILITIES.invalidYesNoAnswer(answer)) {
+        UTILITIES.prompt("Please provid a valid response ('y' or 'n')");
+        answer = readline.question().toLowerCase();
       }
-      this.displayMatchWinner();
-      if (!this.newMatch()) break;
+      return answer === 'y';
     }
-    this.gameBoard.displayGoodbyeMessage();
-  }
-};
+  };
+}
 
+function createRPSGame() {
+  let yesOrNoQuestion = createYesOrNoQuestion();
+
+  let RPSGame =  {
+    human: createHuman(),
+    computer: createComputer(),
+    gameBoard: createGameBoard(),
+    validMoves: null,
+
+    getValidMoves() {return this.validMoves},
+    setValidMoves(value) {this.validMoves = value},
+
+    resetGameBoard() {
+      this.gameBoard.setHuman(this.human);
+      this.gameBoard.setComputer(this.computer);
+    },
+
+    updatePlayerMoves() {
+      this.human.updateMoves(this.human.move);
+      this.computer.updateMoves(this.computer.move);
+    },
+
+    determineWinner() {
+      let humanMove = this.human.getMove();
+      let computerMove = this.computer.getMove();
+
+      this.updatePlayerMoves();
+
+      if (GAME_RULES[humanMove].defeats.includes(computerMove)) {
+        this.human.winGame();
+      } else if (GAME_RULES[computerMove].defeats.includes(humanMove)) {
+        this.computer.winGame();
+      }
+    },
+
+    playAgain() {return this.askYesOrNoQuestion('Next game?')},
+    newMatch() {return this.askYesOrNoQuestion('New match?')},
+
+    isMatchOver() {
+      return this.human.isMatchWinner() || this.computer.isMatchWinner();
+    },
+
+    selectGameType() {
+      this.gameBoard.displayGameTypes();
+      if (this.askYesOrNoQuestion('Need more info on these additional moves?')) {
+        open(RPSSL_RULES_URL);
+      }
+
+      if (this.askYesOrNoQuestion('Would you like to include the additional moves?')) {
+        this.setValidMoves(VALID_MOVES.rpsls);
+      } else {
+        this.setValidMoves(VALID_MOVES.rps);
+      }
+    },
+
+    resetMatch() {
+      this.human.resetScore();
+      this.computer.resetScore();
+      this.selectGameType();
+      this.resetGameBoard();
+    },
+
+    resetGame() {
+      this.human.setIsGameWinner(false);
+      this.computer.setIsGameWinner(false);
+    },
+
+    play() {
+      this.gameBoard.displayWelcomeMessage();
+      // Match loop
+      while (true) {
+        this.resetMatch();
+        // Individual game loop
+        while (true) {
+          this.resetGame();
+          this.human.choose(null, this.getValidMoves());
+          this.computer.choose(this.human.getMoves(), this.getValidMoves());
+          this.determineWinner();
+          this.gameBoard.displayInGameSummary();
+          if (this.isMatchOver()) break;
+          if (!this.playAgain()) break;
+        }
+        this.gameBoard.displayMatchWinner();
+        if (!this.newMatch()) break;
+      }
+      this.gameBoard.displayGoodbyeMessage();
+    }
+  };
+
+  return Object.assign(RPSGame, yesOrNoQuestion);
+}
+
+let RPSGame = createRPSGame();
 RPSGame.play();
