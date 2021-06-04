@@ -9,7 +9,6 @@ const DISPLAY_ASSETS = require('./display_assets');
 const GAMES_NEEDED_TO_WIN_MATCH = 2;
 const RPSSL_RULES_URL = 'http://www.samkass.com/theories/RPSSL.html';
 
-
 function createPlayer() {
   return {
     move: null,
@@ -176,13 +175,13 @@ function createYesOrNoQuestion() {
     validYesOrNoResponses: ['y', 'n'],
 
     isValidResponse(response) {
-      return !this.validResponses.includes(response);
+      return !this.validYesOrNoResponses.includes(response);
     },
 
     askYesOrNoQuestion(question) {
       UTILITIES.prompt(question + ' (y/n)');
       let answer = readline.question().toLowerCase();
-      while (UTILITIES.invalidYesNoAnswer(answer)) {
+      while (this.isValidResponse(answer)) {
         UTILITIES.prompt("Please provid a valid response ('y' or 'n')");
         answer = readline.question().toLowerCase();
       }
