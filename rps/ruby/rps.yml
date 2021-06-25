@@ -1,0 +1,12 @@
+short_names:
+  r: 'rock'
+  p: 'paper'
+  sc: 'scissors'
+  sp: 'spock'
+  l: 'lizard'
+defeated_by:
+  rock: ['scissors', 'lizard']
+  paper: ['rock', 'spock']
+  scissors: ['paper', 'lizard']
+  spock: ['rock', 'scisors']
+  lizard: ['paper', 'spock']
