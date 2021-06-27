@@ -7,7 +7,7 @@ DEFEATED_BY = CONFIG['defeated_by']
 MAX_WINS = 2
 
 def prompt(message)
-  Kernel.puts("=> #{message}")
+  puts "=> #{message}"
 end
 
 def win?(first, second)
@@ -32,13 +32,11 @@ Updated scores:
 end
 
 def winner(player, computer)
-  winner = nil
   if win?(player, computer)
-    winner = 'player'
+    'player'
   elsif win?(computer, player)
-    winner = 'computer'
+    'computer'
   end
-  winner
 end
 
 def update_scores(winner, scores)
@@ -69,12 +67,19 @@ def reset_match(scores)
   scores[:computer] = 0
 end
 
-scores = { player: 0, computer: 0 }
-loop do # main loop
+def capitalize(words)
+  words.map { |word| word.capitalize }
+end
+
+def format_valid_choices(name_hash)
+  name_hash.map { |short_name, full_name| "#{full_name} (#{short_name})" }
+end
+
+def get_user_choice
   choice = ''
   loop do
-    prompt("Choose one: #{VALID_CHOICES.join(', ')}")
-    choice = Kernel.gets().chomp()
+    prompt("Choose one: #{format_valid_choices(SHORT_NAMES).join(', ')}")
+    choice = gets.chomp.downcase
 
     if SHORT_NAMES[choice]
       choice = SHORT_NAMES[choice]
@@ -86,12 +91,42 @@ loop do # main loop
       prompt("Please enter a valid choice.")
     end
   end
+  choice
+end
 
+def play_again?(match_winner)
+  answer = ''
+  loop do
+    if match_winner
+      prompt("Do you want to play another match?")
+    else
+      prompt("Do you want to play another game?")
+    end
+    answer = gets.chomp.downcase
+    if !%w(y yes n no).include?(answer)
+      prompt("Please provide a valid response (yes, no)")
+    else
+      break
+    end
+  end
+  answer.start_with?('y')
+end
+
+system "clear"
+puts "***************************************************"
+puts "Welcome to #{capitalize(VALID_CHOICES).join(', ')}!"
+puts "***************************************************"
+puts "You must win #{MAX_WINS} games to win the match.\n\n"
+
+scores = { player: 0, computer: 0 }
+
+loop do # main loop
+  player_choice = get_user_choice
   computer_choice = VALID_CHOICES.sample
 
-  prompt("You chose #{choice}; Computer chose #{computer_choice}")
+  prompt("You chose #{player_choice}; Computer chose #{computer_choice}")
 
-  winner = winner(choice, computer_choice)
+  winner = winner(player_choice, computer_choice)
   display_results(winner)
   update_scores(winner, scores)
   display_scores(scores)
@@ -102,9 +137,8 @@ loop do # main loop
     reset_match(scores)
   end
 
-  prompt("Do you want to play again?")
-  answer = Kernel.gets().chomp()
-  break unless answer.downcase().start_with?('y')
+  break unless play_again?(match_winner)
+  system "clear"
 end
 
 prompt("Thank you for playing!")
