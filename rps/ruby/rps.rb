@@ -68,7 +68,7 @@ def reset_match(scores)
 end
 
 def capitalize(words)
-  words.map { |word| word.capitalize }
+  words.map(&:capitalize)
 end
 
 def format_valid_choices(name_hash)
