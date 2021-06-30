@@ -1,5 +1,5 @@
-require 'pry-byebug'
-
+MIDDLE_SQUARE = 5
+ADJACENT_MARKERS_TO_WIN = 3
 WINS_FOR_MATCH = 5
 INITIAL_MARKER = ' '
 PLAYER_MARKER = 'X'
@@ -12,6 +12,10 @@ def prompt(msg)
   puts "=> #{msg}"
 end
 
+def random_boolean
+  [true, false].sample
+end
+
 def joinor(arr, delim = ', ', final_delim = 'or')
   str = ''
   case arr.size
@@ -21,7 +25,7 @@ def joinor(arr, delim = ', ', final_delim = 'or')
   else
     arr.each_with_index do |item, idx|
       str << case idx
-             when 0            then item
+             when 0            then item.to_s
              when arr.size - 1 then "#{delim}#{final_delim} #{item}"
              else                   "#{delim}#{item}"
              end
@@ -30,14 +34,18 @@ def joinor(arr, delim = ', ', final_delim = 'or')
   str
 end
 
-# rubocop:disable Metrics/MethodLength, Metrics/AbcSize
-def display_board(board, scores)
-  system 'clear'
+def display_board_header
   puts "---------------------------------"
   puts "           Tic Tac Toe           "
   puts "---------------------------------"
   prompt "You're #{PLAYER_MARKER}. Computer is #{COMPUTER_MARKER}."
   prompt "Win #{WINS_FOR_MATCH} games to win the match!"
+end
+
+# rubocop:disable Metrics/MethodLength, Metrics/AbcSize
+def display_board(board, scores)
+  system 'clear'
+  display_board_header
   puts "---------------------------------"
   puts "Wins | you: #{scores['Player']}, computer: #{scores['Computer']}"
   puts ""
@@ -86,18 +94,18 @@ def player_places_piece!(board)
   square = ''
   loop do
     prompt "Choose a square (#{joinor(empty_squares(board))})"
-    square = gets.chomp.to_i
-    break if empty_squares(board).include?(square)
+    square = gets.chomp
+    break if empty_squares(board).map(&:to_s).include?(square)
     prompt "Sorry, that's not a valid choice!"
   end
 
-  board[square] = PLAYER_MARKER
+  board[square.to_i] = PLAYER_MARKER
 end
 
 def defensive_square(board, opponent = PLAYER_MARKER)
   defensive_square = nil
   WINNING_LINES.each do |line|
-    if board.values_at(*line).count(opponent) == 2
+    if board.values_at(*line).count(opponent) == ADJACENT_MARKERS_TO_WIN - 1
       defensive_square = line.filter do |square|
         board[square] == INITIAL_MARKER
       end.first
@@ -112,7 +120,7 @@ def computer_places_piece!(board)
   square = defensive_square(board) if !square
   if !square
     empty_squares = empty_squares(board)
-    square = empty_squares.include?(5) ? 5 : empty_squares.sample
+    square = empty_squares.include?(MIDDLE_SQUARE) ? MIDDLE_SQUARE : empty_squares.sample
   end
   board[square] = COMPUTER_MARKER
 end
@@ -127,9 +135,9 @@ end
 
 def detect_winner(board)
   WINNING_LINES.each do |line|
-    if board.values_at(*line).count(PLAYER_MARKER) == 3
+    if board.values_at(*line).count(PLAYER_MARKER) == ADJACENT_MARKERS_TO_WIN
       return 'Player'
-    elsif board.values_at(*line).count(COMPUTER_MARKER) == 3
+    elsif board.values_at(*line).count(COMPUTER_MARKER) == ADJACENT_MARKERS_TO_WIN
       return 'Computer'
     end
   end
@@ -157,11 +165,8 @@ def play_again?(message)
   loop do
     prompt("#{message} (yes, no)")
     answer = gets.chomp.downcase
-    if !%w(y yes n no).include?(answer)
-      prompt("Please provide a valid response (yes, no)")
-    else
-      break
-    end
+    break if %w(y yes n no).include?(answer)
+    prompt("Please provide a valid response (yes, no)")
   end
   answer.start_with?('y')
 end
@@ -172,16 +177,14 @@ def player_goes_first?
   loop do
     prompt "Who do you want to have the first turn?" \
            " 1-me, 2-computer, 3-don't care"
-    choice = gets.chomp.to_i
-    break if [1, 2, 3].include?(choice)
+    choice = gets.chomp
+    break if %w(1 2 3).include?(choice)
     prompt "Not a valid response!"
   end
 
-  if choice == 3
-    choice = [1, 2].sample
-  end
+  return random_boolean if choice == '3'
 
-  options[choice - 1] == 'Player'
+  options[choice.to_i - 1] == 'Player'
 end
 
 system 'clear'
