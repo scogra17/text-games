@@ -3,6 +3,7 @@ GAME_NAME = 'Twenty One'
 MAX_GAME_SCORE = 21
 DEALER_TARGET_SCORE = 17
 WINS_FOR_MATCH = 5
+FACE_CARDS = ['J', 'Q', 'K']
 
 def repeat(text, n = SCREEN_WIDTH)
   text * n
@@ -18,7 +19,7 @@ end
 
 def initialize_deck
   suits = ['H', 'D', 'S', 'C']
-  values = (2..10).map(&:to_s) + ['J', 'Q', 'K', 'A']
+  values = (2..10).map(&:to_s) + FACE_CARDS + ['A']
   deck = []
   suits.each do |suit|
     values.each do |value|
@@ -32,7 +33,7 @@ def card_value(card)
   card_value = card[1]
   if card_value.to_i.to_s == card_value
     card_value.to_i
-  elsif ['J', 'Q', 'K', '10'].include?(card_value)
+  elsif FACE_CARDS.include?(card_value)
     10
   elsif card_value == 'A'
     1
@@ -65,9 +66,9 @@ def deal_cards(deck, count)
 end
 
 def outcome(players_score, dealers_score)
-  if players_score > 21
+  if players_score > MAX_GAME_SCORE
     :player_busted
-  elsif dealers_score > 21
+  elsif dealers_score > MAX_GAME_SCORE
     :dealer_busted
   elsif dealers_score < players_score
     :player_wins
