@@ -1,5 +1,3 @@
-require "pry-byebug"
-
 module Affirmable
   def yes?(question, allowed_responses = ['y', 'n'])
     answer = ''
