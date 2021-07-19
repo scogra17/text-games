@@ -25,6 +25,9 @@ class Rock < Move
   def to_s
     'rock'
   end
+
+  def short_name
+  end
 end
 
 class Paper < Move
