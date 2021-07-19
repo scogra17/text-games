@@ -7,3 +7,4 @@ Simple text-based games
 * 06/25/21: RPS (Ruby - procedural)
 * 06/29/21: Tic Tac Toe (Ruby - procedural)
 * 06/30/21: Twenty-one (Ruby - procedural)
+* 07/18/21: RPS (Ruby - OO)

@@ -1,18 +1,39 @@
+require "pry-byebug"
+
 module Affirmable
-  def yes?(question, allowed_responses)
+  def yes?(question, allowed_responses = ['y', 'n'])
     answer = ''
     loop do
       puts "#{question} (#{allowed_responses.join('/')})"
       answer = gets.chomp.downcase
       break unless !%w(y yes n no).include?(answer)
-      prompt("Please provide a valid response (#{allowed_responses.join('/')})")
+      puts "Please provide a valid response (#{allowed_responses.join('/')})"
     end
     answer.chars.first == 'y'
   end
 end
 
+class Moves
+  def self.valid_moves
+    [Rock, Paper, Scissors, Lizard, Spock]
+  end
+
+  def self.display_valid_names
+    valid_moves.map { |move| "#{move} (#{move.short_name})" }.join(', ')
+  end
+
+  def self.valid_names
+    valid_moves.map { |move| [move.to_s.downcase, move.short_name] }.flatten
+  end
+
+  def self.move(name)
+    valid_moves.each do |move|
+      return move if move.to_s.downcase == name || move.short_name == name
+    end
+  end
+end
+
 class Move
-  VALUES = ['rock', 'paper', 'scissors', 'lizard', 'spock']
   attr_reader :move
 end
 
@@ -26,7 +47,8 @@ class Rock < Move
     'rock'
   end
 
-  def short_name
+  def self.short_name
+    'r'
   end
 end
 
@@ -39,6 +61,10 @@ class Paper < Move
   def to_s
     'paper'
   end
+
+  def self.short_name
+    'p'
+  end
 end
 
 class Scissors < Move
@@ -49,6 +75,10 @@ class Scissors < Move
 
   def to_s
     'scissors'
+  end
+
+  def self.short_name
+    'sc'
   end
 end
 
@@ -61,6 +91,10 @@ class Lizard < Move
   def to_s
     'lizard'
   end
+
+  def self.short_name
+    'l'
+  end
 end
 
 class Spock < Move
@@ -71,6 +105,10 @@ class Spock < Move
 
   def to_s
     'spock'
+  end
+
+  def self.short_name
+    'sp'
   end
 end
 
@@ -103,9 +141,9 @@ end
 
 class Human < Player
   def set_name
-    n = ''
+    system "clear"
+    n = nil
     loop do
-      system "clear"
       puts "Type your name and hit return:"
       n = gets.chomp
       break unless n.empty?
@@ -115,25 +153,24 @@ class Human < Player
   end
 
   def select_move
+    system "clear"
     choice = nil
     loop do
-      system "clear"
-      puts "Please choose rock, paper, scissors, lizard or spock:"
+      puts "Please choose #{Moves.display_valid_names}:"
       choice = gets.downcase.chomp
-      break if Move::VALUES.include? choice
+      break if Moves.valid_names.include? choice
       puts "Sorry, invalid choice."
     end
-    choice
+    Moves.move(choice)
   end
 
   def choose
     choice = select_move
-    self.move = case choice
-                when 'rock' then Rock.new
-                when 'paper' then Paper.new
-                when 'scissors' then Scissors.new
-                when 'lizard' then Lizard.new
-                when 'spock' then Spock.new
+    self.move = if choice == Rock then Rock.new
+                elsif choice == Paper then Paper.new
+                elsif choice == Scissors then Scissors.new
+                elsif choice == Lizard then Lizard.new
+                elsif choice == Spock then Spock.new
                 end
   end
 end
@@ -220,7 +257,7 @@ class RPSGame
 end
 
 class RPSMatch
-  GAMES_TO_WIN_MATCH = 2
+  GAMES_TO_WIN_MATCH = 10
   include Affirmable
 
   attr_reader :game, :human, :computer
@@ -275,20 +312,21 @@ class RPSMatch
   end
 
   def play_another_game?
-    yes?("Would you like to play another game?", ['y', 'n'])
+    yes?("Would you like to play another game?")
   end
 
   def play_another_match?
-    yes?("Would you like to play another match?", ['y', 'n'])
+    yes?("Would you like to play another match?")
   end
 
   def see_move_history?
     system "clear"
-    yes?("Would you like to see the move history?", ['y', 'n'])
+    yes?("Would you like to see the move history?")
   end
 
-  def ready_to_play?
-    yes?("Are you ready to play?", ['y', 'n'])
+  def continue?
+    puts "Tap return when you're ready to play..."
+    gets
   end
 
   def record_game_winner
@@ -325,7 +363,7 @@ class RPSMatch
 
   def play
     display_welcome_message
-    ready_to_play?
+    continue?
     match_loop
     display_move_history if see_move_history?
     display_goodbye_message
