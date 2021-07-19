@@ -163,13 +163,7 @@ class Human < Player
   end
 
   def choose
-    choice = select_move
-    self.move = if choice == Rock then Rock.new
-                elsif choice == Paper then Paper.new
-                elsif choice == Scissors then Scissors.new
-                elsif choice == Lizard then Lizard.new
-                elsif choice == Spock then Spock.new
-                end
+    self.move = select_move.new
   end
 end
 
@@ -180,12 +174,7 @@ class Computer < Player
 
   def choose
     choice = name::MOVE_PREFERENCE_WEIGHT.map { |k, v| [k] * v }.flatten.sample
-    self.move = if choice == Rock then Rock.new
-                elsif choice == Paper then Paper.new
-                elsif choice == Scissors then Scissors.new
-                elsif choice == Lizard then Lizard.new
-                elsif choice == Spock then Spock.new
-                end
+    self.move = choice.new
   end
 end
 
