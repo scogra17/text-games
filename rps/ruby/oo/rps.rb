@@ -1,11 +1,11 @@
 module Affirmable
-  def yes?(question, example_responses)
+  def yes?(question, allowed_responses)
     answer = ''
     loop do
-      puts "#{question} (#{example_responses.join('/')})"
+      puts "#{question} (#{allowed_responses.join('/')})"
       answer = gets.chomp.downcase
       break unless !%w(y yes n no).include?(answer)
-      prompt("Please provide a valid response (yes/no)")
+      prompt("Please provide a valid response (#{allowed_responses.join('/')})")
     end
     answer.chars.first == 'y'
   end
@@ -92,13 +92,18 @@ class Player
   def record_move
     @moves[@move.class] += 1
   end
+
+  def display_moves
+    moves.map { |move, count| "#{move.name}: #{count}" }.join(', ')
+  end
 end
 
 class Human < Player
   def set_name
     n = ''
     loop do
-      puts "What's your name"
+      system "clear"
+      puts "Type your name and hit return:"
       n = gets.chomp
       break unless n.empty?
       puts "Sorry, must enter a value."
@@ -109,6 +114,7 @@ class Human < Player
   def select_move
     choice = nil
     loop do
+      system "clear"
       puts "Please choose rock, paper, scissors, lizard or spock:"
       choice = gets.downcase.chomp
       break if Move::VALUES.include? choice
@@ -131,7 +137,7 @@ end
 
 class Computer < Player
   def set_name
-    @name = [R2D2, WallE, SkyNet].sample
+    @name = [R2D2, WallE, Skynet].sample
   end
 
   def choose
@@ -165,7 +171,7 @@ class WallE < Computer
   }
 end
 
-class SkyNet < Computer
+class Skynet < Computer
   MOVE_PREFERENCE_WEIGHT = {
     Rock => 0,
     Paper => 0,
@@ -175,38 +181,19 @@ class SkyNet < Computer
   }
 end
 
-class RPSMatch
-end
-
 class RPSGame
-  include Affirmable
+  attr_reader :human, :computer
 
-  GAMES_TO_WIN_MATCH = 2
-
-  attr_accessor :human, :computer
-
-  def initialize
-    @human = Human.new
-    @computer = Computer.new
-  end
-
-  def reset_game
-    human.reset_score
-    computer.reset_score
-  end
-
-  def display_welcome_message
-    puts "Welcome to Rock, Paper, Scissors, Lizard, Spock!"
-    puts "First to #{GAMES_TO_WIN_MATCH} wins, wins the match!"
-  end
-
-  def display_goodbye_message
-    puts "Thanks for playing. Goodbye!"
+  def initialize(human, computer)
+    @human = human
+    @computer = computer
   end
 
   def display_moves
+    system "clear"
     puts "#{human.name} chose #{human.move}."
     puts "#{computer.name} chose #{computer.move}."
+    puts ""
   end
 
   def display_game_winner
@@ -219,17 +206,49 @@ class RPSGame
     end
   end
 
-  def record_game_winner
-    if human.move > computer.move
-      human.record_win
-    elsif computer.move > human.move
-      computer.record_win
-    end
+  def play
+    human.choose
+    human.record_move
+    computer.choose
+    computer.record_move
+    display_moves
+    display_game_winner
+  end
+end
+
+class RPSMatch
+  GAMES_TO_WIN_MATCH = 2
+  include Affirmable
+
+  attr_reader :game, :human, :computer
+
+  def initialize
+    @human = Human.new
+    @computer = Computer.new
+    @game = RPSGame.new(human, computer)
+  end
+
+  def display_welcome_message
+    system "clear"
+    puts "*****************************************************"
+    puts "Welcome to Rock, Paper, Scissors, Lizard, Spock!"
+    puts "*****************************************************"
+    puts "You must win #{GAMES_TO_WIN_MATCH} games to win the match!"
+    puts ""
+  end
+
+  def display_goodbye_message
+    puts "Thanks for playing. Goodbye!"
   end
 
   def display_match_score
-    puts "#{human.name} has won #{human.score} games"
-    puts "#{computer.name} has won #{computer.score} games"
+    human_score = human.score
+    computer_score = computer.score
+    puts "#{human.name} has won " \
+     "#{human_score} game#{human_score == 1 ? '' : 's'}"
+    puts "#{computer.name} has won " \
+     "#{computer_score} game#{computer_score == 1 ? '' : 's'}"
+    puts ""
   end
 
   def match_winner?
@@ -246,8 +265,10 @@ class RPSGame
   end
 
   def display_move_history
-    puts "#{human.name} move history: #{human.moves}"
-    puts "#{computer.name} move history: #{computer.moves}"
+    system "clear"
+    puts "#{human.name}'s move history:\n #{human.display_moves}"
+    puts "#{computer.name}'s move history:\n #{computer.display_moves}"
+    puts ""
   end
 
   def play_another_game?
@@ -258,26 +279,33 @@ class RPSGame
     yes?("Would you like to play another match?", ['y', 'n'])
   end
 
-  def display_game_data
-    display_moves
-    display_game_winner
+  def see_move_history?
+    system "clear"
+    yes?("Would you like to see the move history?", ['y', 'n'])
   end
 
-  def display_match_data
-    display_match_score
-    display_move_history
+  def ready_to_play?
+    yes?("Are you ready to play?", ['y', 'n'])
+  end
+
+  def record_game_winner
+    if human.move > computer.move
+      human.record_win
+    elsif computer.move > human.move
+      computer.record_win
+    end
+  end
+
+  def reset_game
+    human.reset_score
+    computer.reset_score
   end
 
   def game_loop
-    loop do # game loop
-      human.choose
-      human.record_move
-      computer.choose
-      computer.record_move
+    loop do
+      game.play
       record_game_winner
-      display_game_data
-      display_match_data
-
+      display_match_score
       break if match_winner? || !play_another_game?
     end
   end
@@ -285,19 +313,20 @@ class RPSGame
   def match_loop
     loop do
       game_loop
-      if match_winner?
-        display_match_winner
-        reset_game
-      end
-      break if !play_another_match?
+      break unless match_winner? # exited before match ended, terminate game
+      display_match_winner
+      break unless play_another_match?
+      reset_game
     end
   end
 
   def play
     display_welcome_message
+    ready_to_play?
     match_loop
+    display_move_history if see_move_history?
     display_goodbye_message
   end
 end
 
-RPSGame.new.play
+RPSMatch.new.play
