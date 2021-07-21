@@ -3,7 +3,9 @@ A *very* simple tic tac toe game.
 
 # Text "UI"
 ```
-Welcome to Tic Tac Toe!
+***********************************************
+            Welcome to Tic Tac Toe!
+***********************************************
 
 You're a X. Computer is a O.
 
