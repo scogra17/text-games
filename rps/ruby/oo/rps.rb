@@ -11,26 +11,6 @@ module Affirmable
   end
 end
 
-# class Moves
-#   def self.valid_moves
-#     [Rock, Paper, Scissors, Lizard, Spock]
-#   end
-
-#   def self.display_valid_names
-#     valid_moves.map { |move| "#{move} (#{move.short_name})" }.join(', ')
-#   end
-
-#   def self.valid_names
-#     valid_moves.map { |move| [move.to_s.downcase, move.short_name] }.flatten
-#   end
-
-#   def self.move(name)
-#     valid_moves.each do |move|
-#       return move if move.to_s.downcase == name || move.short_name == name
-#     end
-#   end
-# end
-
 class Move
   def self.valid_moves
     [Rock, Paper, Scissors, Lizard, Spock]
