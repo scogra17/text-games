@@ -11,7 +11,27 @@ module Affirmable
   end
 end
 
-class Moves
+# class Moves
+#   def self.valid_moves
+#     [Rock, Paper, Scissors, Lizard, Spock]
+#   end
+
+#   def self.display_valid_names
+#     valid_moves.map { |move| "#{move} (#{move.short_name})" }.join(', ')
+#   end
+
+#   def self.valid_names
+#     valid_moves.map { |move| [move.to_s.downcase, move.short_name] }.flatten
+#   end
+
+#   def self.move(name)
+#     valid_moves.each do |move|
+#       return move if move.to_s.downcase == name || move.short_name == name
+#     end
+#   end
+# end
+
+class Move
   def self.valid_moves
     [Rock, Paper, Scissors, Lizard, Spock]
   end
@@ -29,9 +49,7 @@ class Moves
       return move if move.to_s.downcase == name || move.short_name == name
     end
   end
-end
 
-class Move
   attr_reader :move
 end
 
@@ -154,12 +172,12 @@ class Human < Player
     system "clear"
     choice = nil
     loop do
-      puts "Please choose #{Moves.display_valid_names}:"
+      puts "Please choose #{Move.display_valid_names}:"
       choice = gets.downcase.chomp
-      break if Moves.valid_names.include? choice
+      break if Move.valid_names.include? choice
       puts "Sorry, invalid choice."
     end
-    Moves.move(choice)
+    Move.move(choice)
   end
 
   def choose
@@ -180,7 +198,7 @@ end
 
 class R2D2 < Computer
   MOVE_PREFERENCE_WEIGHT = {
-    Rock => 100,
+    Rock => 1,
     Paper => 0,
     Scissors => 0,
     Lizard => 0,
@@ -191,10 +209,10 @@ end
 class WallE < Computer
   MOVE_PREFERENCE_WEIGHT = {
     Rock => 0,
-    Paper => 25,
-    Scissors => 25,
-    Lizard => 25,
-    Spock => 25
+    Paper => 1,
+    Scissors => 1,
+    Lizard => 1,
+    Spock => 1
   }
 end
 
@@ -202,9 +220,9 @@ class Skynet < Computer
   MOVE_PREFERENCE_WEIGHT = {
     Rock => 0,
     Paper => 0,
-    Scissors => 25,
+    Scissors => 1,
     Lizard => 0,
-    Spock => 50
+    Spock => 2
   }
 end
 
@@ -244,7 +262,7 @@ class RPSGame
 end
 
 class RPSMatch
-  GAMES_TO_WIN_MATCH = 10
+  GAMES_TO_WIN_MATCH = 2
   include Affirmable
 
   attr_reader :game, :human, :computer
