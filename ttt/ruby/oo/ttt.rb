@@ -228,32 +228,52 @@ class Player
   attr_writer :games_won, :name
 end
 
+class Human < Player
+  DEFAULT_MARKER = 'X'
+  DEFAULT_NAME = 'Player'
+
+  def initialize
+    super(DEFAULT_MARKER, DEFAULT_NAME)
+  end
+end
+
+class Computer < Player
+  DEFAULT_MARKER = 'O'
+  ALTERNATIVE_MARKER = 'X'
+  DEFAULT_NAME = 'Computer'
+
+  def initialize
+    super(DEFAULT_MARKER, DEFAULT_NAME)
+  end
+
+  def choose_marker(other_marker)
+    self.marker = ALTERNATIVE_MARKER if other_marker == DEFAULT_MARKER
+  end
+end
+
 class TTTGame
   include Listable
   include Affirmable
   include Randomizable
   include Bannerable
 
-  HUMAN_DEFAULT_MARKER = 'X'
-  HUMAN_DEFAULT_NAME = 'Player'
-  COMPUTER_DEFAULT_MARKER = 'O'
-  COMPUTER_DEFAULT_NAME = 'Computer'
-  FIRST_TO_MOVE = HUMAN_DEFAULT_MARKER
   GAMES_TO_WIN_MATCH = 5
 
   attr_reader :board, :human, :computer
 
   def initialize
     @board = Board.new
-    @human = Player.new(HUMAN_DEFAULT_MARKER, HUMAN_DEFAULT_NAME)
-    @computer = Player.new(COMPUTER_DEFAULT_MARKER, COMPUTER_DEFAULT_NAME)
-    @current_marker = FIRST_TO_MOVE
+    @human = Human.new
+    @computer = Computer.new
+    @current_marker = nil
+    @game_winner = nil
+    @match_winner = nil
   end
 
   def play
     clear
     choose_names if choose_names?
-    choose_marker if choose_marker?
+    choose_markers if choose_marker?
     match_loop
     display_goodbye_message
   end
@@ -262,7 +282,7 @@ class TTTGame
 
   def match_loop
     loop do
-      make_computer_current_marker if !player_goes_first?
+      set_current_marker
       game_loop
       break unless someone_won_match?
       display_match_winner
@@ -312,50 +332,55 @@ class TTTGame
 
   def choose_marker?
     clear_screen_and_dispay_welcome_message
-    puts "Your default marker is '#{HUMAN_DEFAULT_MARKER}'."
+    puts "Your default marker is '#{human.marker}'."
     yes?("Would you like to select a new marker?")
   end
 
-  def choose_marker
+  def choose_markers
     clear_screen_and_dispay_welcome_message
     human.choose_marker
-    computer.marker = HUMAN_DEFAULT_MARKER \
-    if human.marker == COMPUTER_DEFAULT_MARKER
+    computer.choose_marker(human.marker)
   end
 
   def player_goes_first?
+    valid_names = [human.name, computer.name, "Random"]
     clear_screen_and_dispay_welcome_message
     choice = ''
     loop do
-      puts "Who goes first? 1-#{human.name}, 2-#{computer.name}, 3-Don't care"
-      choice = gets.chomp.strip
-      break if %w(1 2 3).include?(choice)
-      puts "Not a valid response!"
+      puts "Who goes first?(#{joinor(valid_names)})"
+      choice = gets.chomp.strip.downcase
+      break if (valid_names.map(&:downcase)).include?(choice)
+      puts "Not a valid response! Type: #{joinor(valid_names)}"
     end
 
-    return random_boolean if choice == '3'
-    choice == '1'
+    return random_boolean if choice == 'random'
+    choice == human.name.downcase
   end
 
-  def make_computer_current_marker
-    @current_marker = COMPUTER_DEFAULT_MARKER
+  def set_current_marker
+    if player_goes_first?
+      @current_marker = human.marker
+    else
+      @current_marker = computer.marker
+    end
   end
 
   def someone_won_match?
-    !!match_winning_marker
+    !!match_winner
   end
 
   def reset_match
     reset_game
+    self.match_winner = nil
     human.reset_games_won
     computer.reset_games_won
   end
 
-  def match_winning_marker
+  def match_winner
     if human.games_won == GAMES_TO_WIN_MATCH
-      human.marker
+      human
     elsif computer.games_won == GAMES_TO_WIN_MATCH
-      computer.marker
+      computer
     end
   end
 
@@ -447,10 +472,10 @@ class TTTGame
   def display_game_result
     clear_screen_and_display_board
 
-    case board.winning_marker
-    when human.marker
+    case game_winner
+    when human
       banner("#{human.name} won!")
-    when computer.marker
+    when computer
       banner("#{computer.name} won")
     else
       puts "It's a tie."
@@ -461,8 +486,10 @@ class TTTGame
     case board.winning_marker
     when human.marker
       human.record_game_win
+      self.game_winner = human
     when computer.marker
       computer.record_game_win
+      self.game_winner = computer
     end
   end
 
@@ -472,7 +499,8 @@ class TTTGame
 
   def reset_game
     board.reset
-    @current_marker = FIRST_TO_MOVE
+    self.game_winner = nil
+    @current_marker = player_goes_first?
     clear
   end
 
@@ -484,16 +512,19 @@ class TTTGame
   def current_player_moves
     if human_turn?
       human_moves
-      @current_marker = COMPUTER_DEFAULT_MARKER
+      @current_marker = computer.marker
     else
       computer_moves
-      @current_marker = HUMAN_DEFAULT_MARKER
+      @current_marker = human.marker
     end
   end
 
   def human_turn?
-    @current_marker == HUMAN_DEFAULT_MARKER
+    @current_marker == human.marker
   end
+
+  attr_writer :match_winner
+  attr_accessor :game_winner
 end
 
 game = TTTGame.new
