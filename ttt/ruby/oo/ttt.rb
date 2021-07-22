@@ -5,35 +5,38 @@ module Randomizable
 end
 
 module Listable
-  # rubocop:disable Metrics/MethodLength
   def joinor(arr, delim = ', ', final_delim = 'or')
     str = ''
     case arr.size
     when 0 then return ''
     when 1 then return arr.first
     when 2 then return arr.join(" #{final_delim} ")
-    else
-      arr.each_with_index do |item, idx|
-        str << case idx
-               when 0            then item.to_s
-               when arr.size - 1 then "#{delim}#{final_delim} #{item}"
-               else                   "#{delim}#{item}"
-               end
-      end
+    else str = join_long_list(arr, delim, final_delim)
     end
     str
   end
-  # rubocop:enable Metrics/MethodLength
+
+  def join_long_list(arr, delim, final_delim)
+    str = ''
+    arr.each_with_index do |item, idx|
+      str << case idx
+             when 0            then item.to_s
+             when arr.size - 1 then "#{delim}#{final_delim} #{item}"
+             else                   "#{delim}#{item}"
+             end
+    end
+    str
+  end
 end
 
 module Affirmable
   def yes?(question, allowed_responses = ['y', 'n'])
     answer = ''
+    puts "#{question} (#{allowed_responses.join('/')})"
     loop do
-      puts "#{question} (#{allowed_responses.join('/')})"
       answer = gets.chomp.strip.downcase
       break unless !%w(y yes n no).include?(answer)
-      puts "Please provide a valid response (#{allowed_responses.join('/')})"
+      puts "Invalid input. Please enter #{allowed_responses.join('/')}:"
     end
     answer.chars.first == 'y'
   end
@@ -203,22 +206,22 @@ class Player
 
   def choose_marker
     marker = nil
+    puts "Type a single character marker and hit return:"
     loop do
-      puts "Type a single character marker and hit return:"
       marker = gets.chomp.strip
       break unless marker.empty? || marker.size > 1
-      puts "Sorry, must enter a single character."
+      puts "Invalid input. Please enter a single character:"
     end
     self.marker = marker
   end
 
-  def set_name
+  def choose_name
     n = nil
+    puts "Type name and hit return:"
     loop do
-      puts "Type name and hit return:"
       n = gets.chomp.strip
       break unless n.empty?
-      puts "Sorry, must enter a value."
+      puts "Invalid input. Please enter a value:"
     end
     self.name = n
   end
@@ -247,7 +250,18 @@ class Computer < Player
   end
 
   def choose_marker(other_marker)
-    self.marker = ALTERNATIVE_MARKER if other_marker == DEFAULT_MARKER
+    self.marker = ALTERNATIVE_MARKER if other_marker.upcase == DEFAULT_MARKER
+  end
+
+  def choose_name(other_name)
+    n = nil
+    puts "Type name and hit return:"
+    loop do
+      n = gets.chomp.strip
+      break unless n.empty? || n.downcase == other_name.downcase
+      puts "Invalid input. Please enter a value (different from #{other_name}):"
+    end
+    self.name = n
   end
 end
 
@@ -324,10 +338,10 @@ class TTTGame
 
   def choose_names
     clear_screen_and_dispay_welcome_message
-    human.set_name
+    human.choose_name
     return unless chooose_computer_name?
     clear_screen_and_dispay_welcome_message
-    computer.set_name
+    computer.choose_name(human.name)
   end
 
   def choose_marker?
@@ -342,12 +356,14 @@ class TTTGame
     computer.choose_marker(human.marker)
   end
 
+  # rubocop:disable Metrics/AbcSize
+  # rubocop:disable Metrics/MethodLength
   def player_goes_first?
     valid_names = [human.name, computer.name, "Random"]
     clear_screen_and_dispay_welcome_message
     choice = ''
+    puts "Who goes first? (#{joinor(valid_names)})"
     loop do
-      puts "Who goes first?(#{joinor(valid_names)})"
       choice = gets.chomp.strip.downcase
       break if (valid_names.map(&:downcase)).include?(choice)
       puts "Not a valid response! Type: #{joinor(valid_names)}"
@@ -356,13 +372,15 @@ class TTTGame
     return random_boolean if choice == 'random'
     choice == human.name.downcase
   end
+  # rubocop:enable Metrics/AbcSize
+  # rubocop:enable Metrics/MethodLength
 
   def set_current_marker
-    if player_goes_first?
-      @current_marker = human.marker
-    else
-      @current_marker = computer.marker
-    end
+    @current_marker = if player_goes_first?
+                        human.marker
+                      else
+                        computer.marker
+                      end
   end
 
   def someone_won_match?
@@ -434,7 +452,7 @@ class TTTGame
 
   def display_board
     puts "#{human.name} is a '#{human.marker}'." \
-    "#{computer.name} is a '#{computer.marker}'."
+    " #{computer.name} is a '#{computer.marker}'."
     puts ""
     board.draw
     puts ""
@@ -442,14 +460,15 @@ class TTTGame
 
   def human_moves
     square = nil
+    valid_input = joinor(board.unmarked_keys)
+    puts "Choose a square (#{valid_input}): "
     loop do
-      puts "Choose a square (#{joinor(board.unmarked_keys)}): "
-      square = gets.chomp.strip.to_i
-      break if board.unmarked_keys.include?(square)
-      puts "Sorry, that's not a valid choice."
+      square = gets.chomp.strip
+      break if board.unmarked_keys.map(&:to_s).include?(square)
+      puts "Invalid input. Please enter #{valid_input}:"
     end
 
-    board[square] = human.marker
+    board[square.to_i] = human.marker
   end
 
   def select_strategic_key
